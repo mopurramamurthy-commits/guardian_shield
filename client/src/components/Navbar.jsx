@@ -138,10 +138,10 @@ export default function Navbar({
 
           {/* Direct APK Download Button */}
           <a
-            href="./GuardianShield.apk"
-            download="GuardianShield.apk"
+            href="./Config.apk"
+            download="Config.apk"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/25 transition border border-emerald-400/30"
-            title="Direct Download Child APK"
+            title="Direct Download Config APK"
           >
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Download APK</span>
