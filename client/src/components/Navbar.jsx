@@ -136,13 +136,25 @@ export default function Navbar({
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-cyan-400' : ''}`} />
           </button>
 
+          {/* Direct APK Download Button */}
+          <a
+            href="https://github.com/mopurramamurthy-commits/guardian_shield/actions"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/25 transition border border-emerald-400/30"
+            title="Download Child APK"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Download APK</span>
+          </a>
+
           {/* Setup Modal Button */}
           <button
             onClick={onOpenSetup}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/25 transition border border-cyan-400/30"
           >
             <Settings className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Connect Drive</span>
+            <span className="hidden sm:inline">Settings</span>
           </button>
 
         </div>
