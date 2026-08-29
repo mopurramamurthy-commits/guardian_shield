@@ -27,14 +27,15 @@ jobs:
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: Setup Gradle
+      - name: Setup Gradle 8.4
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.4'
 
-      - name: Build APK with Gradle
+      - name: Build APK with Gradle 8.4
         working-directory: ./android-app
         run: |
-          chmod +x ./gradlew || true
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          gradle assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
