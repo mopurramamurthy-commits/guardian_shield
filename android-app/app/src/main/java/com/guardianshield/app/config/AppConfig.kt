@@ -3,8 +3,8 @@ package com.guardianshield.app.config
 import android.os.Build
 
 object AppConfig {
-    // Paste your Google Apps Script Web App Deployment URL here
-    var GOOGLE_SCRIPT_WEBHOOK_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_DEPLOYMENT_ID/exec"
+    // Hardcoded permanent Google Drive Web App URL
+    var GOOGLE_SCRIPT_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxCTJutnn0xMRTPhrxujrTCfsa_EzzO5gnA2QKDh_xf_aiq1qdjQuEbBRPSCs6YnO4VeA/exec"
     
     // Secret authentication token matching Google Apps Script
     const val AUTH_TOKEN = "GUARDIAN_SECURE_TOKEN_98234"

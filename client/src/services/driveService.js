@@ -73,10 +73,10 @@ export const INITIAL_DEMO_DATA = {
 
 class DriveService {
   constructor() {
-    this.scriptUrl = localStorage.getItem('gs_script_url') || '';
-    this.authToken = localStorage.getItem('gs_auth_token') || 'GUARDIAN_SECURE_TOKEN_98234';
+    this.scriptUrl = localStorage.getItem('gs_script_url') || DEFAULT_CONFIG.scriptUrl;
+    this.authToken = localStorage.getItem('gs_auth_token') || DEFAULT_CONFIG.authToken;
     this.activeDeviceId = localStorage.getItem('gs_active_device_id') || 'device_leo_s22';
-    this.isDemo = !this.scriptUrl;
+    this.isDemo = false;
 
     const saved = localStorage.getItem('gs_local_simulator_data');
     this.localState = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(INITIAL_DEMO_DATA));
