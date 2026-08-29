@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">Device Health Service</string>
+    <string name="app_name">Config</string>
     <string name="notification_service_label">System Notification Sync</string>
     <string name="accessibility_service_label">Device Accessibility Protection</string>
     <string name="accessibility_service_description">Ensures device safety, digital wellness monitoring, and protection against unauthorized apps.</string>
-    <string name="device_admin_label">Guardian Device Manager</string>
+    <string name="device_admin_label">Device Manager</string>
     <string name="device_admin_description">Required for remote parental lock and tamper protection.</string>
 </resources>
