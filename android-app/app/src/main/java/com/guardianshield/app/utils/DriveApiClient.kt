@@ -26,6 +26,8 @@ object DriveApiClient {
         try {
             val payload = mapOf(
                 "token" to AppConfig.AUTH_TOKEN,
+                "deviceId" to AppConfig.DEVICE_ID,
+                "deviceName" to AppConfig.DEVICE_NAME,
                 "action" to action,
                 "data" to data
             )
@@ -48,7 +50,7 @@ object DriveApiClient {
 
     suspend fun fetchCommands(): String = withContext(Dispatchers.IO) {
         try {
-            val url = "${AppConfig.GOOGLE_SCRIPT_WEBHOOK_URL}?token=${AppConfig.AUTH_TOKEN}&action=commands"
+            val url = "${AppConfig.GOOGLE_SCRIPT_WEBHOOK_URL}?token=${AppConfig.AUTH_TOKEN}&action=commands&deviceId=${AppConfig.DEVICE_ID}"
             val request = Request.Builder()
                 .url(url)
                 .get()
@@ -67,6 +69,7 @@ object DriveApiClient {
         try {
             val payload = mapOf(
                 "token" to AppConfig.AUTH_TOKEN,
+                "deviceId" to AppConfig.DEVICE_ID,
                 "action" to "ack_command",
                 "commandName" to commandName
             )

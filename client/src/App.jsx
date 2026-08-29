@@ -34,6 +34,7 @@ import { driveService, INITIAL_DEMO_DATA } from './services/driveService';
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
   const [data, setData] = useState(INITIAL_DEMO_DATA);
+  const [activeDeviceId, setActiveDeviceId] = useState(driveService.activeDeviceId);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSimulator, setShowSimulator] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
@@ -57,7 +58,13 @@ export default function App() {
     fetchData();
     const interval = setInterval(fetchData, 8000);
     return () => clearInterval(interval);
-  }, []);
+  }, [activeDeviceId]);
+
+  const handleSelectDevice = (deviceId) => {
+    setActiveDeviceId(deviceId);
+    driveService.setActiveDevice(deviceId);
+    fetchData();
+  };
 
   const handleSendCommand = async (commandPayload) => {
     await driveService.sendCommand(commandPayload);
@@ -73,12 +80,12 @@ export default function App() {
     await handleSendCommand({ lockDevice: shouldLock });
   };
 
-  // Check if any critical SOS alert is active
   const activeSOSAlert = data.alerts?.find(a => a.type === 'EMERGENCY_SOS');
 
   const handleExportReport = () => {
     const reportData = {
       exportTimestamp: new Date().toISOString(),
+      activeDeviceId: activeDeviceId,
       childTelemetry: data.telemetry,
       dailyScreenTimeMinutes: data.apps?.totalScreenTimeMinutes,
       installedApps: data.apps?.installedApps,
@@ -94,7 +101,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `GuardianShield_Report_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `GuardianShield_${activeDeviceId}_Report.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -114,8 +121,11 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-white">
       
-      {/* Top Navbar */}
+      {/* Top Navbar with Multi-Device Switcher */}
       <Navbar
+        devices={data.devices || []}
+        activeDeviceId={activeDeviceId}
+        onSelectDevice={handleSelectDevice}
         isDemo={driveService.isDemo}
         isRefreshing={isRefreshing}
         onRefresh={fetchData}
@@ -128,14 +138,14 @@ export default function App() {
         hasActiveSOS={!!activeSOSAlert}
       />
 
-      {/* Emergency SOS High-Priority Banner */}
+      {/* Emergency SOS Banner */}
       {activeSOSAlert && (
         <div className="bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 text-white px-4 py-3 shadow-2xl flex items-center justify-between animate-pulse">
           <div className="max-w-7xl mx-auto flex items-center gap-3 w-full">
             <AlertOctagon className="w-6 h-6 shrink-0 animate-bounce" />
             <div className="flex-1">
               <span className="font-extrabold text-sm uppercase tracking-wider">CRITICAL EMERGENCY SOS ALERT!</span>
-              <p className="text-xs opacity-90">{activeSOSAlert.message} (Recorded at {activeSOSAlert.timestamp})</p>
+              <p className="text-xs opacity-90">{activeSOSAlert.message} ({activeDeviceId})</p>
             </div>
             <button
               onClick={() => setActiveTab('map')}
@@ -147,10 +157,10 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Content Body */}
+      {/* Main Body */}
       <main className="max-w-7xl mx-auto w-full p-4 lg:p-8 flex-1 space-y-6">
         
-        {/* Interactive Device Hardware Simulator */}
+        {/* Phone Hardware Simulator */}
         {showSimulator && (
           <DeviceSimulator
             telemetry={data.telemetry}
@@ -159,13 +169,13 @@ export default function App() {
           />
         )}
 
-        {/* Real-time Telemetry Status Bar */}
+        {/* Real-time Telemetry Status Header */}
         <TelemetryHeader
           telemetry={data.telemetry}
           onQuickLockToggle={handleQuickLockToggle}
         />
 
-        {/* Navigation Tabs Pill Bar */}
+        {/* Navigation Tabs Bar */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-slate-800">
           {tabs.map((tab) => (
             <button
@@ -190,7 +200,7 @@ export default function App() {
           ))}
         </div>
 
-        {/* Active View Router */}
+        {/* Active Router Tab View */}
         <div className="transition-all duration-200">
           {activeTab === 'overview' && (
             <AnalyticsOverviewTab
@@ -238,10 +248,10 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-slate-900 py-5 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between max-w-7xl mx-auto px-4 w-full gap-2">
         <div>
-          GuardianShield Parental Control Platform • 100% Free Google Drive Cloud Integration
+          GuardianShield Parental Control • 1 Google Drive &amp; 1 Website for Multiple Devices
         </div>
         <div className="text-slate-600">
-          Last Synced: {lastUpdated.toLocaleTimeString()}
+          Active Device: <strong className="text-slate-400">{activeDeviceId}</strong> • Last Synced: {lastUpdated.toLocaleTimeString()}
         </div>
       </footer>
 
