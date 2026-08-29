@@ -2,23 +2,9 @@
   "name": "guardian-shield",
   "version": "1.0.0",
   "description": "Comprehensive Child Monitoring & Parental Control Platform",
-  "main": "server/src/index.js",
   "scripts": {
-    "install-all": "npm install && npm --prefix server install && npm --prefix client install",
-    "server": "npm --prefix server run dev",
-    "client": "npm --prefix client run dev",
-    "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\""
-  },
-  "devDependencies": {
-    "concurrently": "^9.1.2"
-  },
-  "keywords": [
-    "parental-control",
-    "child-monitoring",
-    "geofencing",
-    "screentime",
-    "gps-tracking"
-  ],
-  "author": "GuardianShield Team",
-  "license": "MIT"
+    "install": "cd client && npm install",
+    "build": "cd client && npm install && npm run build",
+    "start": "cd client && npm run preview"
+  }
 }
