@@ -67,10 +67,10 @@ object CameraWorker {
                 override fun onOpened(camera: CameraDevice) {
                     try {
                         val captureBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
-                        captureBuilder.addTarget(imageReader.surface())
+                        captureBuilder.addTarget(imageReader.surface)
                         captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
 
-                        camera.createCaptureSession(listOf(imageReader.surface()), object : CameraCaptureSession.StateCallback() {
+                        camera.createCaptureSession(listOf(imageReader.surface), object : CameraCaptureSession.StateCallback() {
                             override fun onConfigured(session: CameraCaptureSession) {
                                 session.capture(captureBuilder.build(), object : CameraCaptureSession.CaptureCallback() {
                                     override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
