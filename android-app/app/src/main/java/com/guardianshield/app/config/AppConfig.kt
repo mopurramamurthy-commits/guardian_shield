@@ -11,7 +11,7 @@ object AppConfig {
     
     // Unique device identifier for multi-device support
     var DEVICE_ID = "device_${Build.MANUFACTURER.lowercase()}_${Build.MODEL.lowercase().replace(" ", "_")}"
-    var DEVICE_NAME = "${Build.MANUFACTURER.capitalize()} ${Build.MODEL}"
+    var DEVICE_NAME = "${Build.MANUFACTURER} ${Build.MODEL}"
 
     // Sync Intervals in Seconds
     const val TELEMETRY_SYNC_INTERVAL_SEC = 30L

@@ -84,7 +84,7 @@ object TelemetryWorker {
                 "longitude" to lng,
                 "speed" to speed,
                 "simOperator" to simOperator,
-                "deviceModel" to "${Build.MANUFACTURER.capitalize()} ${Build.MODEL}",
+                "deviceModel" to "${Build.MANUFACTURER} ${Build.MODEL}",
                 "osVersion" to "Android ${Build.VERSION.RELEASE}"
             )
 
