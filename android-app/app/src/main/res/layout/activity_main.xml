@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Child Safety & Monitoring Service Configuration. Complete the steps below to start 24/7 protection."
+            android:text="Child Safety &amp; Monitoring Service Configuration. Complete the steps below to start 24/7 protection."
             android:textColor="#94A3B8"
             android:textSize="14sp" />
 
@@ -55,7 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Required Permissions & Services:"
+            android:text="Required Permissions &amp; Services:"
             android:textColor="#F1F5F9"
             android:textStyle="bold" />
 
@@ -92,7 +92,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:backgroundTint="#9333EA"
-            android:text="4. Activate Device Admin & Screen Lock"
+            android:text="4. Activate Device Admin &amp; Screen Lock"
             android:textColor="#FFFFFF" />
 
         <Button
@@ -115,7 +115,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:backgroundTint="#16A34A"
-            android:text="🚀 ACTIVATE PROTECTION & HIDE ICON"
+            android:text="🚀 ACTIVATE PROTECTION &amp; HIDE ICON"
             android:textColor="#FFFFFF"
             android:textSize="15sp"
             android:textStyle="bold" />
